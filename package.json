@@ -28,8 +28,12 @@
     "@vue/cli-plugin-router": "^4.0.0",
     "@vue/cli-plugin-vuex": "^4.0.0",
     "@vue/cli-service": "^4.0.0",
+    "css-loader": "^3.4.0",
+    "less": "^3.10.3",
+    "less-loader": "^5.0.0",
     "sass": "^1.19.0",
     "sass-loader": "^8.0.0",
+    "style-loader": "^1.1.2",
     "vue-template-compiler": "^2.6.10"
   }
 }
