@@ -2,8 +2,8 @@
   <div class="dashboard-container">
     <el-card>
       <el-row slot="header">
-        <el-button type="primary" plain>新增标签</el-button>
-        <el-button type="primary" plain>返回学科</el-button>
+        <el-button @click="addFlag = true" type="primary" plain>新增标签</el-button>
+        <el-button @click="returnSubject" type="primary" plain>返回学科</el-button>
       </el-row>
       <el-form>
         <el-form-item class="search-item" label="标签名称">
@@ -29,13 +29,14 @@
       <el-row type="flex" justify="center" style="margin: 30px 0;">
         <el-pagination @current-change="pageChange" :current-page="page.page" :page-size="page.pagesize" background :total="page.total"></el-pagination>
       </el-row>
+      <!-- 修改的弹框 -->
       <el-dialog :show-close="false" :visible="flag">
         <el-form ref="myForm" :model="source" :rules="sourceRuls" label-width="20%">
           <el-form-item prop="tagName" label="学科名称">
             <el-input placeholder="请输入学科名称" v-model="source.tagName" clearable></el-input>
           </el-form-item>
           <el-form-item prop="subjectID" label="学科">
-            <el-select v-model="source.subjectID" placeholder="请选择">
+            <el-select v-model="source.subjectID" placeholder="请选择学科">
               <el-option v-for="item in subJectListData" :key="item.id" :label="item.subjectName" :value="item.id"></el-option>
             </el-select>
           </el-form-item>
@@ -45,29 +46,58 @@
             <el-button @click="flag = false" plain>取消</el-button>
         </el-row>
       </el-dialog>
+      <!-- 添加弹框 -->
+      <el-dialog :show-close="false" :visible="addFlag">
+        <el-form ref="myForm" :model="addData" :rules="sourceRuls" label-width="20%">
+          <el-form-item prop="tagName" label="学科名称">
+            <el-input placeholder="请输入学科名称" v-model="addData.tagName" clearable></el-input>
+          </el-form-item>
+          <el-form-item prop="subjectID" label="学科">
+            <el-select v-model="addData.subjectID" placeholder="请选择学科">
+              <el-option v-for="item in subJectListData" :key="item.id" :label="item.subjectName" :value="item.id"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-form>
+         <el-row type="flex" justify="end" style="margin-top: 80px;">
+            <el-button type="primary" @click="define">确定</el-button>
+            <el-button @click="addFlag = false" plain>取消</el-button>
+        </el-row>
+      </el-dialog>
     </el-card>
   </div>
 </template>
 
 <script>
-import {list as tagsList, update, removeState, remove} from '../../api/hmmm/tags.js'
+import {list as tagsList, update, removeState, remove, add} from '../../api/hmmm/tags.js'
 import {list as subjectsList} from '../../api/hmmm/subjects.js'
 export default {
   name: 'TagsList',
   data() {
     return {
       tagData: [],
+
+      // 请求列表数据的条件
       page: {
         page: 1,
         pagesize: 10,
         total: 1,
         tagName: ''
       },
+
+      // 修改弹框的打开关闭状态
       flag: false,
+      // 添加弹框的打开关闭状态
+      addFlag: false,
+      // 定义要修改的数据
       source: {
         tagName: '',
         subjectID: null,
         id: null
+      },
+      // 定义要添加的数据
+      addData: {
+        tagName: '',
+        subjectID: null
       },
       // 定义验证规则
       sourceRuls: {
@@ -83,8 +113,6 @@ export default {
 
       // 定义接收学科列表数据
       subJectListData: [],
-
-      // 要修改的数据
       
     }
   },
@@ -106,7 +134,6 @@ export default {
 
       // 点击搜索搜索列表数据
       searchListData () {
-
         // 每次搜索的时候应该吧当前页面变成第一页
         this.page.page = 1
         this.getTagListData()
@@ -116,9 +143,10 @@ export default {
       async revise (data) {
         this.flag = true
         this.source.tagName = data.tagName
+        // 因为无法获取到学科的id，故使用这种方法
         let selectedname = ["大数据", "python", "c", "c#", "php", "运维", "算法", "数据库", "c++", "产品"]
         let selectedId = [16, 14, 13, 12, 11, 10, 9, 8, 7 ,6]
-        selectedname.forEach(function (item, index) {
+        selectedname.find(function (item, index) {
           if (data.subjectName === item) {
             data.subjectName = selectedId[index]
           }
@@ -130,19 +158,29 @@ export default {
       // 点击确定修改内容
       async define () {
         // 验证数据
-        let isOk = await this.$refs.myForm.validate()
-        if (isOk) {
-            try {
-              let result = await update(this.source)
-              this.getTagListData()
-              this.$message({
-                type: 'success',
-                message: '修改成功'
-              })
-              this.flag = false
-            } catch (err) {
-
-            }
+        try {
+          let isOk = await this.$refs.myForm.validate()
+          // 通过判断修改对象中的数据的id有没有，有的话就是修改没有的话就是添加
+          let result = await this.source.id ? update(this.source) : add(this.addData)
+          this.getTagListData()
+          if (this.source.id) {
+            this.$message({
+              type: 'success',
+              message: '保存成功'
+            })
+          } else {
+            this.$message({
+              type: 'success',
+              message: '添加成功'
+            })
+          }
+          this.flag = false
+          this.addFlag = false
+        } catch (err) {
+          this.$message({
+            type: 'warning',
+            message: '参数异常不能为空'
+          })
         }
       },
 
@@ -180,7 +218,11 @@ export default {
           })
         }
         
-      }
+      },
+      // 返回学科组件
+      returnSubject () {
+        this.$router.push('/subjects/list')
+      },
   },
   created () {
    this.getTagListData()
@@ -201,7 +243,6 @@ export default {
   }
 }
 </script>
-
 <style lang="scss" scoped>
   .search-item {
     padding-left: 10px;
