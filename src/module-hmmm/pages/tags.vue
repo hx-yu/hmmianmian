@@ -2,7 +2,7 @@
   <div class="dashboard-container">
     <el-card>
       <el-row slot="header">
-        <el-button @click="addFlag = true" type="primary" plain>新增标签</el-button>
+        <el-button @click="addTag" type="primary" plain>新增标签</el-button>
         <el-button @click="returnSubject" type="primary" plain>返回学科</el-button>
       </el-row>
       <el-form>
@@ -50,10 +50,10 @@
       <el-dialog :show-close="false" :visible="addFlag">
         <el-form ref="myForm" :model="addData" :rules="sourceRuls" label-width="20%">
           <el-form-item prop="tagName" label="学科名称">
-            <el-input placeholder="请输入学科名称" v-model="addData.tagName" clearable></el-input>
+            <el-input @focus="formFocus" :validate-event="tiggNules" placeholder="请输入学科名称" v-model="addData.tagName" clearable></el-input>
           </el-form-item>
           <el-form-item prop="subjectID" label="学科">
-            <el-select v-model="addData.subjectID" placeholder="请选择学科">
+            <el-select @focus="selectFocus" v-model="addData.subjectID" placeholder="请选择学科">
               <el-option v-for="item in subJectListData" :key="item.id" :label="item.subjectName" :value="item.id"></el-option>
             </el-select>
           </el-form-item>
@@ -113,7 +113,8 @@ export default {
 
       // 定义接收学科列表数据
       subJectListData: [],
-      
+      // 是否触发表单效验
+      tiggNules: true
     }
   },
   methods: {
@@ -159,6 +160,11 @@ export default {
       async define () {
         // 验证数据
         try {
+          // 重新添加验证规则
+          this.sourceRuls.subjectID = [{
+            required: true,
+            message: '请选择学科'
+          }]
           let isOk = await this.$refs.myForm.validate()
           // 通过判断修改对象中的数据的id有没有，有的话就是修改没有的话就是添加
           let result = await this.source.id ? update(this.source) : add(this.addData)
@@ -222,6 +228,22 @@ export default {
       // 返回学科组件
       returnSubject () {
         this.$router.push('/subjects/list')
+      },
+      // 新增标签数据
+      addTag () {
+        // 点击新增的话，就把修改数据中的id清空，方便确定按钮中的判断
+        this.source.id = null
+        this.addFlag = true
+        this.tiggNules = false
+        this.addData = {
+          tagName: '',
+          subjectID: null
+        }
+        // 将验证规则清空
+        this.sourceRuls.subjectID = []
+      },
+      formFocus () {
+        this.tiggNules = true
       },
   },
   created () {
