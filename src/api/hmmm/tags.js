@@ -23,7 +23,6 @@ export const add = data => createAPI(`/tags`, 'post', data)
 
 // 标签修改
 export const update = data => createAPI(`/tags/${data.id}`, 'put', data)
-
 // 标签删除
 export const remove = data => createAPI(`/tags/${data.id}`, 'delete', data)
 
