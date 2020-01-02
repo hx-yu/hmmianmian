@@ -22,6 +22,11 @@ import base from '@/module-manage/' // 用户管理
 // import form from '@/module-form/' // 表单页
 // import details from '@/module-details/' // 表单页
 import hmmm from '@/module-hmmm/' // 黑马面面
+import VueQuillEditor from 'vue-quill-editor'//富文本
+// require styles 引入样式
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
 
 Vue.use(dashboard, store)
 Vue.use(base, store)
@@ -29,7 +34,7 @@ Vue.use(base, store)
 // Vue.use(form, store)
 // Vue.use(details, store)
 Vue.use(hmmm, store)
-
+Vue.use(VueQuillEditor)
 /*
  * 注册 - 组件
  */
