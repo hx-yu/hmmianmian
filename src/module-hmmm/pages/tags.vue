@@ -53,7 +53,7 @@
             <el-input @focus="formFocus" :validate-event="tiggNules" placeholder="请输入学科名称" v-model="addData.tagName" clearable></el-input>
           </el-form-item>
           <el-form-item prop="subjectID" label="学科">
-            <el-select @focus="selectFocus" v-model="addData.subjectID" placeholder="请选择学科">
+            <el-select v-model="addData.subjectID" placeholder="请选择学科">
               <el-option v-for="item in subJectListData" :key="item.id" :label="item.subjectName" :value="item.id"></el-option>
             </el-select>
           </el-form-item>
@@ -145,14 +145,12 @@ export default {
         this.flag = true
         this.source.tagName = data.tagName
         // 因为无法获取到学科的id，故使用这种方法
-        let selectedname = ["大数据", "python", "c", "c#", "php", "运维", "算法", "数据库", "c++", "产品"]
-        let selectedId = [16, 14, 13, 12, 11, 10, 9, 8, 7 ,6]
-        selectedname.find(function (item, index) {
-          if (data.subjectName === item) {
-            data.subjectName = selectedId[index]
+        let subjectData = this.subJectListData.find((item, index) => {
+          if (data.subjectName === item.subjectName) {
+             return true
           }
         })
-        this.source.subjectID = data.subjectName
+        this.source.subjectID = subjectData.id
         this.source.id = data.id
       },
 
