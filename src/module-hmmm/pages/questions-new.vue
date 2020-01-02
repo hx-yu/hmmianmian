@@ -91,10 +91,7 @@
         </el-form-item>
         <!-- 题干 -->
         <el-form-item prop="questionStem" label="题干">
-          <quill-editor
-            v-model="dataForm.questionStem"
-            style="margin-top:40px;height:300px;width:95%;"
-          ></quill-editor>
+          <quill-editor v-model="dataForm.questionStem" style="margin-top:40px;height:300px;width:95%;"></quill-editor>
         </el-form-item>
         <!-- 单选选项 -->
         <el-form-item
@@ -114,7 +111,7 @@
               >
                 <el-radio :label="item">{{item}}</el-radio>
                 <el-input style="width:60%;"></el-input>
-                <el-upload action :show-file-list="false">
+                <el-upload action="#" :show-file-list="false" :http-request="uploadImg">
                   <img
                     style="width:150px;height:80px;border:2px dashed #ccc; margin-left:10px;"
                     src="../../assets/404_images/404_cloud.png"
@@ -196,6 +193,7 @@
 </template>
 
 <script>
+import Vue from 'vue'
 // 题型、难度
 import { difficulty, questionType, direction } from "../../api/hmmm/constants";
 // 学科列表
@@ -211,7 +209,8 @@ import { list as tags } from "../../api/hmmm/tags";
 // 添加试题
 import { batch } from "../../api/hmmm/questions";
 // 引入富文本
-import  VueQuillEditor from 'vue-quill-editor'
+import VueQuillEditor from 'vue-quill-editor'
+Vue.use(VueQuillEditor)
 // 引入样式
 import 'quill/dist/quill.core.css'
 import 'quill/dist/quill.snow.css'
@@ -286,7 +285,7 @@ export default {
       // 选项数组
       choiceArray: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"],
       // 初始选项数组
-      startArray: ["A", "B", "C", "D"]
+      startArray: ["A", "B", "C", "D"],
     };
   },
   methods: {
@@ -332,11 +331,11 @@ export default {
     },
     // 上传图片
     uploadImg(params) {
-      console.log(params);
+      // console.log(params);
     },
     // 上传视频
     uploadVideo(params) {
-      this.dataForm.videoURL = params.file.name;
+      // this.dataForm.videoURL = params.file.name;
     },
     // 提交事件
     async submit() {
