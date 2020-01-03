@@ -73,10 +73,8 @@
             <el-radio
               v-for="(item,index) in dataForm.questionTypes"
               :key="index"
-              :label="item.label"
-              :value="item.value"
-              @change="questionTypeChange"
-            ></el-radio>
+              :label="item.value"
+            >{{item.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <!-- 难易度 -->
@@ -85,10 +83,8 @@
             <el-radio
               v-for="(item,index) in dataForm.levels"
               :key="index"
-              :label="item.label"
-              :value="item.value"
-              @change="levelChange"
-            ></el-radio>
+              :label="item.value"
+            >{{item.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <!-- 题干 -->
@@ -98,7 +94,7 @@
         <!-- 单选选项 -->
         <el-form-item
           prop="singleChoice"
-          v-if="dataForm.questionType==='单选'"
+          v-if="dataForm.questionType === 1"
           label="选项"
           style="margin-top:120px;"
         >
@@ -111,9 +107,9 @@
                 align="middle"
                 style="margin-bottom:20px;"
               >
-                <el-radio :label="item">{{item}}</el-radio>
-                <el-input v-model="dataForm.title[index]" style="width:60%;"></el-input>
-                <i @click="delSelect" class="el-icon-delete" style="font-size:30px;margin:0 5px"></i>
+                <el-radio :label="item" @change="selectChange(index)">{{item}}</el-radio>
+                <el-input v-model="dataForm.options[index].title" style="width:60%;"></el-input>
+                <i @click="delSelect(index)" class="el-icon-delete" style="font-size:30px;margin:0 5px"></i>
                 <el-upload action="#" :show-file-list="false" :http-request="uploadImg">
                   <img
                     style="width:150px;height:80px;border:2px dashed #ccc; margin-left:10px;"
@@ -134,7 +130,7 @@
         <!-- 多选选项 -->
         <el-form-item
           prop="multipleChoice"
-          v-if="dataForm.questionType==='多选'"
+          v-if="dataForm.questionType === 2"
           label="选项"
           style="margin-top:120px;"
         >
@@ -142,7 +138,7 @@
             <el-checkbox-group v-model="dataForm.multipleChoice">
               <el-row v-for="(item,index) in startArray" :key="index" type="flex" align="middle">
                 <el-checkbox :label="item">{{item}}</el-checkbox>
-                <el-input style="width:30%;margin-left:3%;"></el-input>
+                <el-input v-model="dataForm.options[index].title" style="width:30%;margin-left:3%;"></el-input>
                 <i @click="delSelect" class="el-icon-delete" style="font-size:30px;margin:0 5px"></i>
                 <el-upload action :show-file-list="false">
                   <img
@@ -246,7 +242,7 @@ export default {
         direction: null,
         // 题型选项
         questionTypes: questionType,
-        questionType: "1",
+        questionType: 1,
         // 难易度选项
         levels: difficulty,
         level: 1,
@@ -257,7 +253,7 @@ export default {
         // 多选选项
         multipleChoice: ["A"],
         // 选项标题
-        title: [],
+        options: [],
         // 选项图片地址
         imgURL: null,
         // 视频解析
@@ -289,7 +285,7 @@ export default {
       // 选项数组
       choiceArray: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"],
       // 初始选项数组
-      startArray: ["A", "B", "C", "D"],
+      startArray: [],
     };
   },
   methods: {
@@ -324,10 +320,29 @@ export default {
     // 题型增加选项
     addSelect() {
       this.startArray.push(this.choiceArray[this.startArray.length]);
+      this.dataForm.options.push({
+        code :this.choiceArray[this.startArray.length-1],
+        title :'',
+        img :this.dataForm.imgURL,
+        isRight :true
+      })
     },
     // 删除选项
-    delSelect(){
-      this.startArray.splice(this.startArray.length-1,1)
+    delSelect(index){
+      this.startArray.splice(index,1)
+      this.startArray = this.choiceArray.slice(0,this.startArray.length)
+      this.dataForm.options.splice(index,1)
+      this.dataForm.options.forEach((item,index)=>{
+        return item.code = this.startArray[index]
+      })
+    },
+    // 答案选项改变
+    selectChange(index){
+      this.dataForm.options.forEach((item,i)=>{
+        if (i!==index) {
+          return item.isRight = false
+        }
+      })
     },
     // 题型改变
     questionTypeChange(){
@@ -357,12 +372,7 @@ export default {
         questionType: this.dataForm.questionType,
         difficulty: this.dataForm.level,
         question: this.dataForm.questionStem,
-        options: {
-          code: this.dataForm.singleChoice && this.dataForm.multipleChoice,
-          title: this.dataForm.title,
-          img: this.dataForm.imgURL,
-          isRight: true
-        },
+        options: this.dataForm.options,
         videoURL: this.dataForm.videoURL,
         answer: this.dataForm.answer,
         remarks: this.dataForm.remark,
