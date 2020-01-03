@@ -137,7 +137,7 @@
           <el-col>
             <el-checkbox-group v-model="dataForm.multipleChoice">
               <el-row v-for="(item,index) in startArray" :key="index" type="flex" align="middle">
-                <el-checkbox :label="item">{{item}}</el-checkbox>
+                <el-checkbox :label="item" @change="selectChange(index)">{{item}}</el-checkbox>
                 <el-input v-model="dataForm.options[index].title" style="width:30%;margin-left:3%;"></el-input>
                 <i @click="delSelect" class="el-icon-delete" style="font-size:30px;margin:0 5px"></i>
                 <el-upload action :show-file-list="false">
