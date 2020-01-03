@@ -75,6 +75,7 @@
               :key="index"
               :label="item.label"
               :value="item.value"
+              @change="questionTypeChange"
             ></el-radio>
           </el-radio-group>
         </el-form-item>
@@ -86,6 +87,7 @@
               :key="index"
               :label="item.label"
               :value="item.value"
+              @change="levelChange"
             ></el-radio>
           </el-radio-group>
         </el-form-item>
@@ -101,7 +103,7 @@
           style="margin-top:120px;"
         >
           <el-col>
-            <el-radio-group v-model="dataForm.singleChoice" @change="radioChange">
+            <el-radio-group v-model="dataForm.singleChoice">
               <el-row
                 v-for="(item,index) in startArray"
                 :key="index"
@@ -110,7 +112,8 @@
                 style="margin-bottom:20px;"
               >
                 <el-radio :label="item">{{item}}</el-radio>
-                <el-input style="width:60%;"></el-input>
+                <el-input v-model="dataForm.title[index]" style="width:60%;"></el-input>
+                <i @click="delSelect" class="el-icon-delete" style="font-size:30px;margin:0 5px"></i>
                 <el-upload action="#" :show-file-list="false" :http-request="uploadImg">
                   <img
                     style="width:150px;height:80px;border:2px dashed #ccc; margin-left:10px;"
@@ -136,10 +139,11 @@
           style="margin-top:120px;"
         >
           <el-col>
-            <el-checkbox-group v-model="dataForm.multipleChoice" @change="checkboxChange">
+            <el-checkbox-group v-model="dataForm.multipleChoice">
               <el-row v-for="(item,index) in startArray" :key="index" type="flex" align="middle">
                 <el-checkbox :label="item">{{item}}</el-checkbox>
                 <el-input style="width:30%;margin-left:3%;"></el-input>
+                <i @click="delSelect" class="el-icon-delete" style="font-size:30px;margin:0 5px"></i>
                 <el-upload action :show-file-list="false">
                   <img
                     style="width:150px;height:80px;border:2px dashed #ccc; margin-left:10px;"
@@ -253,7 +257,7 @@ export default {
         // 多选选项
         multipleChoice: ["A"],
         // 选项标题
-        title: null,
+        title: [],
         // 选项图片地址
         imgURL: null,
         // 视频解析
@@ -304,7 +308,7 @@ export default {
       let result = await companys();
       this.dataForm.companys = result.data.items;
     },
-    // 获取城市列表
+    // 获取城市列表 
     async getCity() {
       this.dataForm.provinces = await provinces();
     },
@@ -321,13 +325,17 @@ export default {
     addSelect() {
       this.startArray.push(this.choiceArray[this.startArray.length]);
     },
-    // 题型单选框改变
-    radioChange() {
-      alert(this.dataForm.singleChoice);
+    // 删除选项
+    delSelect(){
+      this.startArray.splice(this.startArray.length-1,1)
     },
-    // 题型多选框改变
-    checkboxChange() {
-      alert(this.dataForm.multipleChoice);
+    // 题型改变
+    questionTypeChange(){
+      alert(this.dataForm.questionType)
+    },
+    // 难易度改变
+    levelChange(){
+      alert(this.dataForm.level)
     },
     // 上传图片
     uploadImg(params) {
