@@ -6,7 +6,7 @@
       </el-row>
       <el-form style="margin-left:25px">
         <el-form-item label="关键字">
-          <el-input style="width:240px;margin-right:10px" v-model="pageData.search"></el-input>
+          <el-input style="width:240px;margin-right:10px" v-model="pageData.keyword"></el-input>
           <el-button @click="cleanContent">清除</el-button>
           <el-button type="primary" @click="searchContent">搜索</el-button>
         </el-form-item>
@@ -107,7 +107,7 @@ export default {
       datas: [],
       // 分页信息
       pageData: {
-        search: "",
+        keyword: "",
         counts: 0, //总记录数
         pagesize: 10, //页大小，当前页数
         page: 1 //当前页码
@@ -131,7 +131,7 @@ export default {
     },
     //清除搜索内容
     cleanContent() {
-      this.pageData.search = "";
+      this.pageData.keyword = "";
     },
     // 改变文章状态
     changeState(row) {
@@ -199,9 +199,8 @@ export default {
       });
     },
     // 获取文章列表
-    getarticle(data) {
-      let params = this.pageData;
-      // console.log(params);
+    getarticle() {
+      let params = this.pageData; 
       articlesList(params).then(res => {
         // debugger
         // console.log(res.data)
@@ -210,7 +209,6 @@ export default {
         this.pageData.counts = res.data.counts;
         this.pageData.pagesize = parseInt(res.data.pagesize);
         this.pageData.page = parseInt(res.data.page);
-        this.datas(data)
       });
     },
     //当前页改变
