@@ -2,13 +2,13 @@
   <div class="dashboard-container">
     <el-card>
       <el-row slot="header" shadow="never" type="flex" align="middle">
-        <el-button type="primary" @click="openDialog">新增面试技巧</el-button>
+        <el-button type="primary" @click="showAdd">新增面试技巧</el-button>
       </el-row>
       <el-form style="margin-left:25px">
         <el-form-item label="关键字">
-          <el-input style="width:240px;margin-right:10px"></el-input>
-          <el-button>清除</el-button>
-          <el-button type="primary">搜索</el-button>
+          <el-input style="width:240px;margin-right:10px" v-model="pageData.search"></el-input>
+          <el-button @click="cleanContent">清除</el-button>
+          <el-button type="primary" @click="searchContent">搜索</el-button>
         </el-form-item>
       </el-form>
       <template>
@@ -16,13 +16,19 @@
           <el-table-column prop="id" label="序号"></el-table-column>
           <el-table-column prop="title" label="标题"></el-table-column>
           <el-table-column prop="reads" label="阅读数"></el-table-column>
-          <el-table-column prop="state" label="状态"></el-table-column>
+          <el-table-column :formatter="getState" prop="state" label="状态"></el-table-column>
           <el-table-column prop="creator" label="录入人"></el-table-column>
           <el-table-column prop="operate" label="操作">
-            <el-button type="text" size="small">预览</el-button>
-            <el-button type="text" size="small">修改</el-button>
-            <el-button type="text" size="small" @click="delArticle(datas[0].id)">删除</el-button>
-            <el-button type="text" size="small">禁用</el-button>
+            <template slot-scope="obj">
+              <el-button type="text" size="small">预览</el-button>
+              <el-button type="text" size="small" @click="showModify(obj.row)">修改</el-button>
+              <el-button type="text" size="small" @click="delArticle(obj.row.id)">删除</el-button>
+              <el-button
+                type="text"
+                size="small"
+                @click="changeState(obj.row)"
+              >{{obj.row.state===1?'禁用':'启用'}}</el-button>
+            </template>
           </el-table-column>
         </el-table>
       </template>
@@ -57,7 +63,7 @@
         </el-form>
         <el-row type="flex" justify="end">
           <el-button type="primary" @click="saveAdd(verify)">确 定</el-button>
-          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button @click="cancel">取 消</el-button>
         </el-row>
       </el-dialog>
     </el-card>
@@ -65,7 +71,14 @@
 </template>
 
 <script>
-import { list as articlesList, remove, add } from "../../api/hmmm/articles";
+import {
+  list as articlesList,
+  remove,
+  add,
+  update,
+  state,
+  detail
+} from "../../api/hmmm/articles";
 import { quillEditor } from "vue-quill-editor";
 export default {
   name: "ArticlesList",
@@ -73,9 +86,15 @@ export default {
     return {
       // 校验规则
       rules: {
-        name: [{ required: true, message: "学科名称不能为空！" }],
-        content: [{ required: true, message: "内容不能为空！" }],
-        location: [{ required: true, message: "视频地址不能为空！" }]
+        title: [
+          { required: true, message: "学科名称不能为空！", trigger: "blur" }
+        ],
+        articleBody: [
+          { required: true, message: "内容不能为空！", trigger: "blur" }
+        ],
+        videoURL: [
+          { required: true, message: "视频地址不能为空！", trigger: "blur" }
+        ]
       },
       //表单校验
       verify: {
@@ -85,17 +104,10 @@ export default {
       },
       dialogVisible: false, //弹层状态
       // 文章数据
-      datas: [
-        {
-          id: 0,
-          title: "",
-          reads: -1,
-          state: false,
-          creator: ""
-        }
-      ],
+      datas: [],
       // 分页信息
       pageData: {
+        search: "",
         counts: 0, //总记录数
         pagesize: 10, //页大小，当前页数
         page: 1 //当前页码
@@ -103,6 +115,48 @@ export default {
     };
   },
   methods: {
+    //搜索
+    searchContent() {
+      // alert(this.search)
+      this.pageData.page = 1;
+      this.getarticle();
+    },
+    getCondition() {
+      let params = {
+        page: this.pageData.page,
+        pagesize: this.pageData.pagesize,
+        keyword: this.pageData.search
+      };
+      this.getarticle(params)
+    },
+    //清除搜索内容
+    cleanContent() {
+      this.pageData.search = "";
+    },
+    // 改变文章状态
+    changeState(row) {
+      this.$confirm("确定更改状态？").then(() => {
+        state({ id: row.id, state: row.state === 1 ? 0 : 1 });
+        this.getarticle();
+      });
+    },
+    // 文章状态
+    getState(row) {
+      return row.state === 1 ? "启用" : "禁用";
+    },
+    // 修改文章
+    showModify(row) {
+      // alert(id)
+      detail({ id: row.id, state: row.state }).then(res => {
+        this.verify = res.data;
+        // console.log(this.verify)
+        this.openDialog();
+      });
+    },
+    //新增
+    showAdd(verify) {
+      this.openDialog();
+    },
     //确定新增文章
     saveAdd(verify) {
       // let formdata=new FormData()
@@ -110,14 +164,27 @@ export default {
       // console.log(formdata)
       this.$refs.ruleForm.validate(isOK => {
         if (isOK) {
-          add(verify).then(res => {
-            this.getarticle();
-          });
+          this.verify.id ? update(verify) : add(verify);
+          this.getarticle();
+          this.verify = {
+            title: "",
+            articleBody: "",
+            videoURL: ""
+          };
           this.dialogVisible = false;
         }
       });
     },
-    //点击新增弹层
+    //取消
+    cancel() {
+      this.verify = {
+        title: "",
+        articleBody: "",
+        videoURL: ""
+      };
+      this.dialogVisible = false;
+    },
+    //点击显示弹层
     openDialog() {
       this.dialogVisible = true;
     },
@@ -132,10 +199,9 @@ export default {
       });
     },
     // 获取文章列表
-    getarticle() {
-      let params=this.pageData
-      console.log(params);
-      
+    getarticle(data) {
+      let params = this.pageData;
+      // console.log(params);
       articlesList(params).then(res => {
         // debugger
         // console.log(res.data)
@@ -144,12 +210,13 @@ export default {
         this.pageData.counts = res.data.counts;
         this.pageData.pagesize = parseInt(res.data.pagesize);
         this.pageData.page = parseInt(res.data.page);
+        this.datas(data)
       });
     },
     //当前页改变
     changepage(newPage) {
       console.log(newPage);
-      
+
       this.pageData.page = newPage;
       this.getarticle();
     }
